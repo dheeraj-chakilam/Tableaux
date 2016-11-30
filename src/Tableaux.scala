@@ -4,6 +4,7 @@
 
 import scala.collection.mutable.Queue
 import scala.collection.mutable.Map
+import java.io._
 
 sealed trait Expr
 case class Literal(pVar: Char) extends Expr
@@ -19,6 +20,7 @@ class Node(a: Expr, b: List[Node], c: Boolean, d: Node) {
   var show: Boolean = c
   var godparent: Node = d
   var isContra: Boolean = false
+  var nodeId: Int = 0
 }
 
 object Tableaux {
@@ -116,6 +118,63 @@ object Tableaux {
     }
   }
 
+  def assignNodeIds(n: Node, startIndex: Int): Int = {
+    n.nodeId = startIndex
+    var index = startIndex
+    n.children.foreach(child => index = assignNodeIds(child, index+1))
+    index
+  }
+
+  def exprToString(e: Expr): String = {
+    e match {
+      case Literal(pVar) => pVar + ""
+      case Not(e) => "~" + exprToString(e)
+      case And(e1, e2) => "(" + exprToString(e1) + " ^ " + exprToString(e2) + ")"
+      case Or(e1, e2) => "(" + exprToString(e1) + " v " + exprToString(e2) + ")"
+      case Impl(e1, e2) => "(" + exprToString(e1) + " -> " + exprToString(e2) + ")"
+    }
+  }
+
+  def nodeToJSON(n: Node, parent: String, offset: String, spaces: Int, appendComma: Boolean): String = {
+    
+    // First, get the inner offset:
+    var innerOffset = offset
+    for (x <- 1 to spaces) innerOffset += " "
+    
+    // Get the next offset:
+    var nextOffset = innerOffset
+    for (x <- 1 to spaces) nextOffset += " "
+
+    var json = offset+"{\n"
+    json += innerOffset+"\"id\": \""+n.nodeId+"\",\n"
+    json += innerOffset+"\"parent\": \""+parent+"\",\n"
+    json += innerOffset+"\"expr\": \""+exprToString(n.e)+"\",\n"
+    json += innerOffset+"\"show\": \""+n.show+"\",\n"
+    var godp = "null"
+    if (n.godparent != null) godp = n.godparent.nodeId+""
+    json += innerOffset+"\"godparent\": \""+godp+"\",\n"
+    json += innerOffset+"\"isContra\": \""+n.isContra+"\",\n"
+    json += innerOffset+"\"children\": [\n"
+    for (x <- 1 to n.children.length) {
+      json += nodeToJSON(n.children(x-1), n.nodeId+"", nextOffset, spaces, x < n.children.length)
+    }
+    json += innerOffset+"]\n"
+    json += offset+"}"
+    if (appendComma) json += ","
+    json += "\n"
+
+    return json
+  }
+
+  def writeTreeToFile(filename: String) = {
+    assignNodeIds(root, 1)
+    val toWrite = nodeToJSON(root, "null", "", 2, false) // 2-spacing for JSON formatting
+    val file = new File(filename)
+    val bw = new BufferedWriter(new FileWriter(file))
+    bw.write(toWrite)
+    bw.close()
+  }
+
   def main(args: Array[String]) = {
     val start = System.currentTimeMillis()
     val a: Expr = Literal('A')
@@ -128,6 +187,7 @@ object Tableaux {
     init(e4)
     eval()
     println(isTautology(root))
+    writeTreeToFile("treeData.json")
     println(System.currentTimeMillis() - start)
   }
 
