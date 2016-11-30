@@ -237,8 +237,22 @@ object Tableaux {
   }
 
   def writeTreeToFile(filename: String) = {
+    val isTaut = isTautology(root)
+    val result = exprToString(root.e)+" is "+isTaut
+    println(result)
+
     assignNodeIds(root, 1)
-    val toWrite = nodeToJSON(root, "null", "", 2, false) // 2-spacing for JSON formatting
+
+    var spaces = 2
+    var offset = ""
+    for (x <- 1 to spaces) offset += " "
+    var toWrite = "[\n"
+    toWrite += (offset+"{\n")
+    toWrite += (offset+offset+"\"result\":"+isTaut+"\n")
+    toWrite += (offset+"},\n")
+    toWrite += nodeToJSON(root, "null", offset, spaces, false) // 2-spacing for JSON formatting
+    toWrite += "]"
+
     val file = new File(filename)
     val bw = new BufferedWriter(new FileWriter(file))
     bw.write(toWrite)
@@ -268,7 +282,6 @@ object Tableaux {
       }
     }
     eval()
-    println(exprToString(root.e)+" is "+isTautology(root))
     writeTreeToFile("treeData.json")
     println(System.currentTimeMillis() - start)
   }
