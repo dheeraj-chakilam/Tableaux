@@ -1,0 +1,110 @@
+{
+  "id": "1",
+  "parent": "null",
+  "expr": "(~(A ^ B) -> (~A v ~B))",
+  "show": "false",
+  "godparent": "null",
+  "isContra": "false",
+  "children": [
+    {
+      "id": "2",
+      "parent": "1",
+      "expr": "~(A ^ B)",
+      "show": "true",
+      "godparent": "1",
+      "isContra": "false",
+      "children": [
+        {
+          "id": "3",
+          "parent": "2",
+          "expr": "(~A v ~B)",
+          "show": "false",
+          "godparent": "1",
+          "isContra": "false",
+          "children": [
+            {
+              "id": "4",
+              "parent": "3",
+              "expr": "(A ^ B)",
+              "show": "false",
+              "godparent": "2",
+              "isContra": "false",
+              "children": [
+                {
+                  "id": "5",
+                  "parent": "4",
+                  "expr": "~A",
+                  "show": "false",
+                  "godparent": "3",
+                  "isContra": "false",
+                  "children": [
+                    {
+                      "id": "6",
+                      "parent": "5",
+                      "expr": "~B",
+                      "show": "false",
+                      "godparent": "3",
+                      "isContra": "false",
+                      "children": [
+                        {
+                          "id": "7",
+                          "parent": "6",
+                          "expr": "B",
+                          "show": "false",
+                          "godparent": "4",
+                          "isContra": "false",
+                          "children": [
+                            {
+                              "id": "8",
+                              "parent": "7",
+                              "expr": "A",
+                              "show": "true",
+                              "godparent": "5",
+                              "isContra": "false",
+                              "children": [
+                                {
+                                  "id": "9",
+                                  "parent": "8",
+                                  "expr": "B",
+                                  "show": "true",
+                                  "godparent": "6",
+                                  "isContra": "true",
+                                  "children": [
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "10",
+                          "parent": "6",
+                          "expr": "A",
+                          "show": "false",
+                          "godparent": "4",
+                          "isContra": "false",
+                          "children": [
+                            {
+                              "id": "11",
+                              "parent": "10",
+                              "expr": "A",
+                              "show": "true",
+                              "godparent": "5",
+                              "isContra": "true",
+                              "children": [
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
