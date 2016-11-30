@@ -254,9 +254,21 @@ object Tableaux {
     val e3: Expr = Or(a, Not(a))
     val e4: Expr = Impl(Not(e1),Or(Not(a),Not(b)))
     val e5: Expr = Impl(Impl(And(a,Not(b)),a),e4)*/
-    init(parse("(~(A v B)) -> (~A ^ ~B)"))
+    if (args.length == 0) {
+      println("Usage: Tableaux \"[expression]\"")
+      System.exit(0)
+    }
+    try {
+      val e: Expr = parse(args(0))
+      init(e)
+    } catch {
+      case exc: Exception => {
+        println("Invalid input expression!")
+        System.exit(0)
+      }
+    }
     eval()
-    println(isTautology(root))
+    println(exprToString(root.e)+" is "+isTautology(root))
     writeTreeToFile("treeData.json")
     println(System.currentTimeMillis() - start)
   }
