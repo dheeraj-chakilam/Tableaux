@@ -116,16 +116,86 @@ object Tableaux {
     }
   }
 
+   /* Returns the Expr which matches the input string. Note that there is no assumed order of operations and thus,
+   * parentheses must be used around any inner operator, ie: ~(A v B v C) ^ D -> D is NOT okay, but 
+   * ((~((A v B) v C)) ^ D) -> D is okay*/
+  def parse(arg: String) : Expr = {
+    //Get rid of spaces and change "->" to ">"
+    var input: String = arg.replaceAll("-", "")
+    input = input.replaceAll(" ", "")
+
+    //Add parentheses around unary operator, ie: ~A becomes (~A)
+    for (x <- 'A' to 'Z'){
+      input = input.replaceAll("~" + x, "(~" + x + ")")
+    }
+
+    return parse_helper(input);
+  }
+
+  def parse_helper(arg: String) : Expr = {
+    //Base Case 1: empty string
+    if (arg.length() == 0){
+      throw new IllegalArgumentException("Invalid input")
+    }
+    
+    //Base Case 2: Single character
+    if (arg.length() == 1){
+      if (arg.charAt(0) >= 'A' && arg.charAt(0) <= 'Z'){
+        return Literal(arg.charAt(0))
+      }
+      else{
+        throw new IllegalArgumentException("Invalid input")
+      }
+    }
+
+    //Step 1: find operator with highest precedence (leftmost)
+    var num_paren : Int = 0
+    var operator : Char = '\u0000'
+    var operator_index : Int = 0
+    for (i <- 0 to arg.length()-1){
+      if (arg.charAt(i) == '('){
+        num_paren += 1
+      }
+      else if (arg.charAt(i) == ')'){
+        num_paren -= 1
+      }
+      else if (num_paren == 0 && (arg.charAt(i) == '~' || arg.charAt(i) == 'v' || arg.charAt(i) == '^' || 
+        arg.charAt(i) == '>')){
+        operator = arg.charAt(i)
+        operator_index = i
+      }
+    }
+
+    //Step 2: recursively call parse_helper on the sub-expression(s) of the above operator
+    if (operator == '\u0000' && arg.charAt(0) == '(' && arg.charAt(arg.length() - 1) == ')'){
+      return parse_helper(arg.substring(1, arg.length() - 1))
+    }
+    if (operator == '~'){
+      return Not(parse_helper(arg.substring(1)))
+    }
+    if (operator == 'v'){
+      return Or(parse_helper(arg.substring(0, operator_index)), parse_helper(arg.substring(operator_index + 1)))
+    }
+    if (operator == '^'){
+      return And(parse_helper(arg.substring(0, operator_index)), parse_helper(arg.substring(operator_index + 1)))
+    }
+    if (operator == '>') {
+      return Impl(parse_helper(arg.substring(0, operator_index)), parse_helper(arg.substring(operator_index + 1)))
+    }
+    
+    throw new IllegalArgumentException("Invalid input")
+  }
+
   def main(args: Array[String]) = {
     val start = System.currentTimeMillis()
-    val a: Expr = Literal('A')
+    /*val a: Expr = Literal('A')
     val b: Expr = Literal('B')
     val e1: Expr = And(a, b)
     val e2: Expr = Or(a, b)
     val e3: Expr = Or(a, Not(a))
     val e4: Expr = Impl(Not(e1),Or(Not(a),Not(b)))
-    val e5: Expr = Impl(Impl(And(a,Not(b)),a),e4)
-    init(e4)
+    val e5: Expr = Impl(Impl(And(a,Not(b)),a),e4)*/
+    init(parse("(~(A v B)) -> (~A ^ ~B)"))
     eval()
     println(isTautology(root))
     println(System.currentTimeMillis() - start)
