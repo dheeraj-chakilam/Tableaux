@@ -2,13 +2,24 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 const fs = require('fs')
+const exec = require('child_process').exec;
 
-const fn = "treeData.json";
+const filename = "treeData.json";
 
 var step = -1; // -1 = overview
 var treeObj = null;
 var treeString = "";
 
+function executeTableaux(expression) {
+  console.log("executing "+expression);
+  exec('scala -classpath "../" Tableaux "'+expression+'"', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    updateTreeData();
+  });
+}
 
 function showOverview() {
   updateTree(treeObj[1]);
@@ -35,7 +46,7 @@ function showStepByStep() {
   document.getElementById("result").innerHTML = ("Proof of " + treeObj[1].expr +": Step " + step);
 }
 
-function updateTreeData(filename) {
+function updateTreeData() {
   svg.selectAll("g.node").remove();
   fs.readFile(filename, 'utf8', function (err, data) {
     if (err) {
@@ -53,7 +64,7 @@ function updateTreeData(filename) {
 
 document.getElementById("refreshLink").onclick = function() {
   step = -1;
-  updateTreeData(fn);
+  executeTableaux(document.getElementById("expr").value);
 }
 
 document.getElementById("overviewLink").onclick = function() {
@@ -110,7 +121,7 @@ function updateTree(treeData) {
   root.y0 = 0;
   update(root);
 }
-updateTreeData(fn);
+updateTreeData();
 
 function circleFill(d) {
   if (d.isContra == "true") return "#000";
