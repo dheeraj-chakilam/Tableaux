@@ -9,11 +9,11 @@
       }
       .node circle {
         fill: #fff;
-        stroke: steelblue;
-        stroke-width: 3px;
+        stroke: #000;
+        stroke-width: 2px;
       }
       .node text {
-        font: 12px sans-serif;
+        font: 12px;
       }
       .link {
         fill: none;
@@ -23,25 +23,42 @@
       body {
         text-align: center;
         background: #ededed;
-        font-family: sans-serif;
       }
       svg {
         display: block;
         margin: auto;
       }
+      #content {
+        display:none;
+      }
     </style>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
   </head>
 
   <body>
-    <h2>Visualization of the Tableaux Method</h2>
-    Enter an expression: <input type="text" id="expr"><br>
-    <a id="refreshLink" href="#">Verify</a><br>
-    <a id="overviewLink" href="#">Overview</a>
-    <a id="stepByStepLink" href="#">Step-by-step</a><br>
-    <a id="prevStepLink" href="#">Previous</a>
-    <a id="nextStepLink" href="#">Next</a>
-    <h3 id="result"></h3>
-    <div id = "wrapper">
+    <div id = "content">
+      <h2>Visualization of the Tableaux Method</h2>
+      <form>
+        <input type="text" id="expr" placeholder="Enter an expression">
+        <input type="submit" class="button-primary" id="executeLink" value="Evaluate">
+      </form>
+      <a class="button" id="overviewLink" href="#">Overview</a>
+      <a class="button" id="stepByStepLink" href="#">Step-by-step</a><br>
+      <a class="button" id="prevStepLink" href="#">Previous</a>
+      <a class="button" id="nextStepLink" href="#">Next</a>
+      <h4 id="result"></h4>
+      <div id = "wrapper">
+      </div>
+    </div>
+    <div id = "intro">
+      <h3>Welcome to Constableaux!</h3>
+      <p>This is a propositional logic solver that uses the Tableaux method to visualize proofs for you. It can also step through the proof to show you how exactly the result was derived.</p>
+      <p>To start, enter any propositional logic expression below. Negations are represented with ~, conjunctions with ^, disjunctions with v, and implications with ->. Parentheses are important, and please restrict propositional variable names to uppercase alphabets!</p>
+      <form>
+        <input type="text" id="introExpr">
+        <input type="submit" class="button-primary" id="introExecuteLink" value="Evaluate">
+      </form>
     </div>
   </body>
 

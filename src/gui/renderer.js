@@ -7,8 +7,25 @@ const exec = require('child_process').exec;
 const filename = "treeData.json";
 
 var step = -1; // -1 = overview
+var numSteps = 0;
 var treeObj = null;
 var treeString = "";
+var mode = 0; // 0 = overview, 1 = step-by-step
+
+function updateButtonsMode() {
+  if (mode == 0) {
+    document.getElementById("overviewLink").style.display = "none";
+    document.getElementById("stepByStepLink").style.display = "inline-block";
+    document.getElementById("nextStepLink").style.display = "none";
+    document.getElementById("prevStepLink").style.display = "none";
+  } else {
+    document.getElementById("overviewLink").style.display = "inline-block";
+    document.getElementById("stepByStepLink").style.display = "none";
+    document.getElementById("nextStepLink").style.display = step < numSteps ? "inline-block" : "none";
+    document.getElementById("prevStepLink").style.display = step > 0 ? "inline-block" : "none";
+  }
+}
+updateButtonsMode();
 
 function executeTableaux(expression) {
   console.log("executing "+expression);
@@ -22,28 +39,46 @@ function executeTableaux(expression) {
 }
 
 function showOverview() {
-  updateTree(treeObj[1]);
-  document.getElementById("result").innerHTML = (treeObj[1].expr+" is "+treeObj[0].result+"! Here's the proof:");
+  mode = 0; updateButtonsMode();
+  var tree = treeObj[2];
+  decorateOpenBranches(tree);
+  updateTree(tree);
+  document.getElementById("result").innerHTML = (treeObj[2].expr+" is "+treeObj[0].result+".");
 }
 
-function pruneTree(root) {
+function decorateOpenBranches(n) {
+  if (n.isContra == "false" && n.children.length == 0) n.openBranch = true;
+  for (var i = 0; i < n.children.length; i++) decorateOpenBranches(n.children[i]);
+}
+
+function pruneTree(n) {
   var newchildren = [];
-  for (var i = 0; i < root.children.length; i++) {
-    if (parseInt(root.children[i].stepid) <= step) {
-      pruneTree(root.children[i]);
-      newchildren.push(root.children[i]);
+  for (var i = 0; i < n.children.length; i++) {
+    if (parseInt(n.children[i].stepid) <= step) {
+      pruneTree(n.children[i]);
+      newchildren.push(n.children[i]);
     }
   }
-  root.children = newchildren;
+  n.processed = parseInt(n.id) < step;
+  n.processing = parseInt(n.id) == step;
+  n.openBranch = n.isContra == "false" && n.children.length == 0 && n.processed;
+  n.isContra = n.isContra == "true" && n.processed ? "true" : "false";
+  n.children = newchildren;
 }
 
 function showStepByStep() {
+  mode = 1; updateButtonsMode();
   // up until step
-  var filtered = JSON.parse(treeString)[1];
+  var parse = JSON.parse(treeString);
+  var filtered = parse[2];
+  if (step < 0) step = 0;
+  if (step > numSteps) step = numSteps;
   // Remove all subtrees with stepID >  step:
   pruneTree(filtered);
   updateTree(filtered);
-  document.getElementById("result").innerHTML = ("Proof of " + treeObj[1].expr +": Step " + step);
+  document.getElementById("result").innerHTML = (step == numSteps) ? ((treeObj[0].result ? 
+    "All branches have been closed off, hence " : "We have an open branch in the tree, hence ") + 
+      (treeObj[2].expr+" is "+treeObj[0].result+".")) : parse[1][step+""];
 }
 
 function updateTreeData() {
@@ -54,6 +89,7 @@ function updateTreeData() {
     }
     treeString = data;
     treeObj = JSON.parse(data);
+    numSteps = Object.keys(treeObj[1]).length;
     if (step == -1) {
       showOverview();
     } else {
@@ -62,7 +98,14 @@ function updateTreeData() {
   });
 }
 
-document.getElementById("refreshLink").onclick = function() {
+document.getElementById("introExecuteLink").onclick = function() {
+  step = -1;
+  executeTableaux(document.getElementById("introExpr").value);
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("content").style.display = "block";
+}
+
+document.getElementById("executeLink").onclick = function() {
   step = -1;
   executeTableaux(document.getElementById("expr").value);
 }
@@ -121,11 +164,14 @@ function updateTree(treeData) {
   root.y0 = 0;
   update(root);
 }
-updateTreeData();
 
 function circleFill(d) {
   if (d.isContra == "true") return "#000";
-  return d._children ? "lightsteelblue" : "#fff";
+  if (d.openBranch) return "#f26246";
+  if (d._children) return "lightsteelblue";
+  if (d.processed) return "#ccc";
+  if (d.processing) return "#5FBA7D";
+  return "#fff";
 }
 
 function getDisplayName(d) {
@@ -171,7 +217,7 @@ function update(source) {
     .style("fill", function(d) { return circleFill(d); });
 
   nodeEnter.append("text")
-    .attr("y", function(d) { return d.children || d._children ? -18 : 18; })
+    .attr("y", function(d) { return d.children || d._children ? -28 : 28; })
     .attr("dy", ".35em")
     .attr("text-anchor", "middle")
     .text(function(d) { return getDisplayName(d); })

@@ -81,8 +81,13 @@ object Tableaux {
         }
       case Literal(pVar) =>
         current.env += (Literal(pVar) -> current.show)
-        explanations += (step_counter -> ("We have found an open branch and thus a falsifying assignment to the " +
-          " proposed tautology. For completeness, we will show you how to evaluate the rest of the branches."))
+        if (current.children.length == 0) {
+          explanations += (step_counter -> ("We have found an open branch and thus a falsifying assignment to the " +
+            " proposed tautology. For completeness, we will show you how to evaluate the rest of the tree."))
+        } else {
+          explanations += (step_counter ->
+            ("This node cannot be processed any further, so we continue further down this branch."))
+        }
       case _ => ;
     }
 
@@ -106,13 +111,13 @@ object Tableaux {
         explanations += (step_counter -> ("Showing that " + eToStr(And(e1, e2)) +
           " is true is the same as showing that both " + eToStr(e1) + " and " + eToStr(e2) + " are true."))
       case And(e1, e2) =>
-        godChildren ::= new Node(e1, Nil, current.show, current, -1, step_counter)
         godChildren ::= new Node(e2, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e1, Nil, current.show, current, -1, step_counter)
         explanations += (step_counter -> ("Showing that " + eToStr(And(e1, e2)) +
           " is false is the same as showing that either " + eToStr(e1) + " or " + eToStr(e2) + " is false."))
       case Or(e1, e2) if current.show =>
-        godChildren ::= new Node(e1, Nil, current.show, current, -1, step_counter)
         godChildren ::= new Node(e2, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e1, Nil, current.show, current, -1, step_counter)
         explanations += (step_counter -> ("Showing that " + eToStr(Or(e1, e2)) +
           " is true is the same as showing that either " + eToStr(e1) + " or " + eToStr(e2) + " is true."))
       case Or(e1, e2) =>
@@ -134,10 +139,11 @@ object Tableaux {
           " is false is the same as showing that " + eToStr(e1) + " is true and " + eToStr(e2) + " is false."))
     }
 
-    current.e match {
+    /* current.e match {
       case Literal(pVar) => ;
       case default => step_counter = step_counter + 1
-    }
+    } */
+    step_counter += 1
 
     appendTail(current, godChildren)
 
@@ -283,6 +289,15 @@ object Tableaux {
     var toWrite = "[\n"
     toWrite += (offset + "{\n")
     toWrite += (offset + offset + "\"result\":" + isTaut + "\n")
+    toWrite += (offset + "},\n")
+    toWrite += (offset + "{\n")
+    var counter = 1;
+    for ((k, v) <- explanations) {
+      toWrite += (offset + offset + "\"" + k + "\"" + ": \"" + v + "\"")
+      if (counter != explanations.size) toWrite += ","
+      toWrite += "\n"
+      counter += 1
+    }
     toWrite += (offset + "},\n")
     toWrite += nodeToJSON(root, "null", offset, spaces, false) // 2-spacing for JSON formatting
     toWrite += "]"
