@@ -1,6 +1,6 @@
 /**
-  * Created by Dheeraj on 11/19/2016.
-  */
+* Created by Dheeraj on 11/19/2016.
+*/
 
 import scala.collection.mutable.Queue
 import scala.collection.mutable.Map
@@ -41,6 +41,34 @@ object Tableaux {
     pQ = new Queue[Node]
     pQ.enqueue(root)
     explanations += (0 -> ("To check if " + eToStr(e)  + " is a tautology, we will try to falsify it."))
+  }
+
+  def postProcess(n: Node): Unit = {
+    var numNodes: Int = 0
+    var nodeIDSet: List[Int] = Nil
+    var queue: Queue[Node] = new Queue[Node]
+    queue.enqueue(n)
+
+    while(!queue.isEmpty){
+      var head : Node = queue.dequeue
+      nodeIDSet ::= head.nodeID
+      numNodes = numNodes + 1
+      head.children.foreach(queue.enqueue(_))
+    }
+
+    nodeIDSet = nodeIDSet.sorted
+    var nodeIDConversion: Map[Int, Int] = Map()
+    for (i <- 0 to (numNodes - 1)){
+      nodeIDConversion += (nodeIDSet(i) -> (i + 1))
+    }
+
+    var queue2: Queue[Node] = new Queue[Node]
+    queue2.enqueue(n)
+    while(!queue2.isEmpty) {
+      var head: Node = queue2.dequeue
+      head.nodeID = nodeIDConversion(head.nodeID)
+      head.children.foreach(queue.enqueue(_))
+    }
   }
 
   def deepCopy(n: Node): Node = {
@@ -331,6 +359,7 @@ object Tableaux {
       }
     }
     eval()
+    postProcess(root)
     writeTreeToFile("treeData.json")
   }
 }
