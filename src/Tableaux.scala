@@ -13,14 +13,15 @@ case class And(e1: Expr, e2: Expr) extends Expr
 case class Or(e1: Expr, e2: Expr) extends Expr
 case class Impl(e1: Expr, e2: Expr) extends Expr
 
-class Node(a: Expr, b: List[Node], c: Boolean, d: Node) {
-  var e: Expr = a
-  var children: List[Node] = b
+class Node(p1: Expr, p2: List[Node], p3: Boolean, p4: Node, p5: Int, p6: Int) {
+  var e: Expr = p1
+  var children: List[Node] = p2
   var env: Map[Literal, Boolean] = Map()
-  var show: Boolean = c
-  var godparent: Node = d
+  var show: Boolean = p3
+  var godparent: Node = p4
   var isContra: Boolean = false
-  var nodeId: Int = 0
+  var nodeID: Int = p5
+  var stepID: Int = p6
 }
 
 object Tableaux {
@@ -28,15 +29,22 @@ object Tableaux {
   var pQ: Queue[Node] = null
   var root: Node = null
 
+  var node_counter = 1
+  var step_counter = 0
+
   def init(e: Expr) = {
-    root = new Node(e, Nil, false, null)
+    root = new Node(e, Nil, false, null, node_counter, step_counter)
+    node_counter = node_counter + 1
+    step_counter = step_counter + 1
     pQ = new Queue[Node]
     pQ.enqueue(root)
   }
 
   def deepCopy(n: Node): Node = {
+    var nn = new Node(n.e, null, n.show, n.godparent, node_counter, n.stepID)
+    node_counter = node_counter + 1
     val newChildren = n.children.map(deepCopy)
-    val nn = new Node(n.e, newChildren, n.show, n.godparent)
+    nn.children = newChildren
     nn.env = Map[Literal, Boolean]() ++= n.env
     nn
   }
@@ -76,27 +84,34 @@ object Tableaux {
     var godChildren: List[Node] = Nil
     current.e match {
       case Literal(pVar) => ;
-      case Not(e) => godChildren ::= new Node(e,Nil,!current.show,current)
+      case Not(e) =>
+        godChildren ::= new Node(e,Nil,!current.show,current,-1,step_counter)
       case And(e1, e2) if current.show =>
-        val innerNode: Node = new Node(e2,Nil,current.show,current)
-        godChildren ::= new Node(e1,List(innerNode),current.show,current)
+        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e1,List(innerNode),current.show,current,-1,step_counter)
       case And(e1, e2) =>
-        godChildren ::= new Node(e1,Nil,current.show,current)
-        godChildren ::= new Node(e2,Nil,current.show,current)
+        godChildren ::= new Node(e1,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e2,Nil,current.show,current,-1,step_counter)
       case Or(e1, e2) if current.show =>
-        godChildren ::= new Node(e1,Nil,current.show,current)
-        godChildren ::= new Node(e2,Nil,current.show,current)
+        godChildren ::= new Node(e1,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e2,Nil,current.show,current,-1,step_counter)
       case Or(e1, e2) =>
-        val innerNode: Node = new Node(e2,Nil,current.show,current)
-        godChildren ::= new Node(e1,List(innerNode),current.show,current)
+        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e1,List(innerNode),current.show,current,-1,step_counter)
       case Impl(e1, e2) if current.show =>
-        godChildren ::= new Node(e1,Nil,!current.show,current)
-        val innerNode: Node = new Node(e2,Nil,current.show,current)
-        godChildren ::= new Node(e1,List(innerNode),current.show,current)
+        godChildren ::= new Node(e1,Nil,!current.show,current,-1,step_counter)
+        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e1,List(innerNode),current.show,current,-1,step_counter)
       case Impl(e1,e2) =>
-        val innerNode: Node = new Node(e2,Nil,current.show,current)
-        godChildren ::= new Node(e1,List(innerNode),!current.show,current)
+        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e1,List(innerNode),!current.show,current,-1,step_counter)
     }
+
+    current.e match {
+      case Literal(pVar) => ;
+      case default => step_counter = step_counter + 1
+    }
+
     appendTail(current,godChildren)
 
     // Step3: Copies the current node's environment to its immediate children and adds them to the pQ
@@ -118,9 +133,9 @@ object Tableaux {
     }
   }
 
-   /* Returns the Expr which matches the input string. Note that there is no assumed order of operations and thus,
-   * parentheses must be used around any inner operator, ie: ~(A v B v C) ^ D -> D is NOT okay, but 
-   * ((~((A v B) v C)) ^ D) -> D is okay*/
+  /* Returns the Expr which matches the input string. Note that there is no assumed order of operations and thus,
+  * parentheses must be used around any inner operator, ie: ~(A v B v C) ^ D -> D is NOT okay, but
+  * ((~((A v B) v C)) ^ D) -> D is okay*/
   def parse(arg: String) : Expr = {
     //Get rid of spaces and change "->" to ">"
     var input: String = arg.replaceAll("-", "")
@@ -139,7 +154,7 @@ object Tableaux {
     if (arg.length() == 0){
       throw new IllegalArgumentException("Invalid input")
     }
-    
+
     //Base Case 2: Single character
     if (arg.length() == 1){
       if (arg.charAt(0) >= 'A' && arg.charAt(0) <= 'Z'){
@@ -161,7 +176,7 @@ object Tableaux {
       else if (arg.charAt(i) == ')'){
         num_paren -= 1
       }
-      else if (num_paren == 0 && (arg.charAt(i) == '~' || arg.charAt(i) == 'v' || arg.charAt(i) == '^' || 
+      else if (num_paren == 0 && (arg.charAt(i) == '~' || arg.charAt(i) == 'v' || arg.charAt(i) == '^' ||
         arg.charAt(i) == '>')){
         operator = arg.charAt(i)
         operator_index = i
@@ -184,15 +199,8 @@ object Tableaux {
     if (operator == '>') {
       return Impl(parse_helper(arg.substring(0, operator_index)), parse_helper(arg.substring(operator_index + 1)))
     }
-    
-    throw new IllegalArgumentException("Invalid input")
-  }
 
-  def assignNodeIds(n: Node, startIndex: Int): Int = {
-    n.nodeId = startIndex
-    var index = startIndex
-    n.children.foreach(child => index = assignNodeIds(child, index+1))
-    index
+    throw new IllegalArgumentException("Invalid input")
   }
 
   def exprToString(e: Expr): String = {
@@ -206,27 +214,28 @@ object Tableaux {
   }
 
   def nodeToJSON(n: Node, parent: String, offset: String, spaces: Int, appendComma: Boolean): String = {
-    
+
     // First, get the inner offset:
     var innerOffset = offset
     for (x <- 1 to spaces) innerOffset += " "
-    
+
     // Get the next offset:
     var nextOffset = innerOffset
     for (x <- 1 to spaces) nextOffset += " "
 
     var json = offset+"{\n"
-    json += innerOffset+"\"id\": \""+n.nodeId+"\",\n"
+    json += innerOffset+"\"id\": \""+n.nodeID+"\",\n"
     json += innerOffset+"\"parent\": \""+parent+"\",\n"
+    json += innerOffset+"\"stepid\": \""+n.stepID+"\",\n"
     json += innerOffset+"\"expr\": \""+exprToString(n.e)+"\",\n"
     json += innerOffset+"\"show\": \""+n.show+"\",\n"
     var godp = "null"
-    if (n.godparent != null) godp = n.godparent.nodeId+""
+    if (n.godparent != null) godp = n.godparent.nodeID+""
     json += innerOffset+"\"godparent\": \""+godp+"\",\n"
     json += innerOffset+"\"isContra\": \""+n.isContra+"\",\n"
     json += innerOffset+"\"children\": [\n"
     for (x <- 1 to n.children.length) {
-      json += nodeToJSON(n.children(x-1), n.nodeId+"", nextOffset, spaces, x < n.children.length)
+      json += nodeToJSON(n.children(x-1), n.nodeID+"", nextOffset, spaces, x < n.children.length)
     }
     json += innerOffset+"]\n"
     json += offset+"}"
@@ -240,8 +249,6 @@ object Tableaux {
     val isTaut = isTautology(root)
     val result = exprToString(root.e)+" is "+isTaut
     println(result)
-
-    assignNodeIds(root, 1)
 
     var spaces = 2
     var offset = ""
@@ -283,7 +290,4 @@ object Tableaux {
     }
     eval()
     writeTreeToFile("treeData.json")
-    println(System.currentTimeMillis() - start)
   }
-
-}
