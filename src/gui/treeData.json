@@ -1,0 +1,250 @@
+[
+  {
+    "result":true
+  },
+  {
+    "id": "1",
+    "parent": "null",
+    "expr": "((P -> (Q -> R)) -> ((P -> Q) -> (P -> R)))",
+    "show": "false",
+    "godparent": "null",
+    "isContra": "false",
+    "stepid": 0,
+    "children": [
+      {
+        "id": "2",
+        "parent": "1",
+        "expr": "(P -> (Q -> R))",
+        "show": "true",
+        "godparent": "1",
+        "isContra": "false",
+        "stepid": 1,
+        "children": [
+          {
+            "id": "3",
+            "parent": "2",
+            "expr": "((P -> Q) -> (P -> R))",
+            "show": "false",
+            "godparent": "1",
+            "isContra": "false",
+            "stepid": 1,
+            "children": [
+              {
+                "id": "4",
+                "parent": "3",
+                "expr": "P",
+                "show": "true",
+                "godparent": "2",
+                "isContra": "false",
+                "stepid": 2,
+                "children": [
+                  {
+                    "id": "5",
+                    "parent": "4",
+                    "expr": "(Q -> R)",
+                    "show": "true",
+                    "godparent": "2",
+                    "isContra": "false",
+                    "stepid": 2,
+                    "children": [
+                      {
+                        "id": "6",
+                        "parent": "5",
+                        "expr": "(P -> Q)",
+                        "show": "true",
+                        "godparent": "3",
+                        "isContra": "false",
+                        "children": [
+                          {
+                            "id": "7",
+                            "parent": "6",
+                            "expr": "(P -> R)",
+                            "show": "false",
+                            "godparent": "3",
+                            "isContra": "false",
+                            "children": [
+                              {
+                                "id": "8",
+                                "parent": "7",
+                                "expr": "Q",
+                                "show": "true",
+                                "godparent": "5",
+                                "isContra": "false",
+                                "children": [
+                                  {
+                                    "id": "9",
+                                    "parent": "8",
+                                    "expr": "R",
+                                    "show": "true",
+                                    "godparent": "5",
+                                    "isContra": "false",
+                                    "children": [
+                                      {
+                                        "id": "10",
+                                        "parent": "9",
+                                        "expr": "P",
+                                        "show": "true",
+                                        "godparent": "6",
+                                        "isContra": "false",
+                                        "children": [
+                                          {
+                                            "id": "11",
+                                            "parent": "10",
+                                            "expr": "Q",
+                                            "show": "true",
+                                            "godparent": "6",
+                                            "isContra": "false",
+                                            "children": [
+                                              {
+                                                "id": "12",
+                                                "parent": "11",
+                                                "expr": "P",
+                                                "show": "true",
+                                                "godparent": "7",
+                                                "isContra": "false",
+                                                "children": [
+                                                  {
+                                                    "id": "13",
+                                                    "parent": "12",
+                                                    "expr": "R",
+                                                    "show": "false",
+                                                    "godparent": "7",
+                                                    "isContra": "true",
+                                                    "children": [
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "id": "14",
+                                        "parent": "9",
+                                        "expr": "P",
+                                        "show": "false",
+                                        "godparent": "6",
+                                        "isContra": "true",
+                                        "children": [
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "15",
+                                "parent": "7",
+                                "expr": "Q",
+                                "show": "false",
+                                "godparent": "5",
+                                "isContra": "false",
+                                "children": [
+                                  {
+                                    "id": "16",
+                                    "parent": "15",
+                                    "expr": "P",
+                                    "show": "true",
+                                    "godparent": "6",
+                                    "isContra": "false",
+                                    "children": [
+                                      {
+                                        "id": "17",
+                                        "parent": "16",
+                                        "expr": "Q",
+                                        "show": "true",
+                                        "godparent": "6",
+                                        "isContra": "true",
+                                        "children": [
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "18",
+                                    "parent": "15",
+                                    "expr": "P",
+                                    "show": "false",
+                                    "godparent": "6",
+                                    "isContra": "true",
+                                    "children": [
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "19",
+                "parent": "3",
+                "expr": "P",
+                "show": "false",
+                "godparent": "2",
+                "isContra": "false",
+                "children": [
+                  {
+                    "id": "20",
+                    "parent": "19",
+                    "expr": "(P -> Q)",
+                    "show": "true",
+                    "godparent": "3",
+                    "isContra": "false",
+                    "children": [
+                      {
+                        "id": "21",
+                        "parent": "20",
+                        "expr": "(P -> R)",
+                        "show": "false",
+                        "godparent": "3",
+                        "isContra": "false",
+                        "children": [
+                          {
+                            "id": "22",
+                            "parent": "21",
+                            "expr": "P",
+                            "show": "true",
+                            "godparent": "20",
+                            "isContra": "true",
+                            "children": [
+                            ]
+                          },
+                          {
+                            "id": "23",
+                            "parent": "21",
+                            "expr": "P",
+                            "show": "false",
+                            "godparent": "20",
+                            "isContra": "false",
+                            "children": [
+                              {
+                                "id": "24",
+                                "parent": "23",
+                                "expr": "P",
+                                "show": "true",
+                                "godparent": "21",
+                                "isContra": "true",
+                                "children": [
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

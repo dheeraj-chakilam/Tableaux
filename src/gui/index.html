@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Constableaux</title>
+    <style>
+      .node {
+        cursor: pointer;
+      }
+      .node circle {
+        fill: #fff;
+        stroke: steelblue;
+        stroke-width: 3px;
+      }
+      .node text {
+        font: 12px sans-serif;
+      }
+      .link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 2px;
+      }
+      body {
+        text-align: center;
+        background: #ededed;
+        font-family: sans-serif;
+      }
+      svg {
+        display: block;
+        margin: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Visualization of the Tableaux Method</h2>
+    <a id="refreshLink" href="#">(refresh data)</a><br>
+    <a id="overviewLink" href="#">Overview</a>
+    <a id="stepByStepLink" href="#">Step-by-step</a><br>
+    <a id="prevStepLink" href="#">Previous</a>
+    <a id="nextStepLink" href="#">Next</a>
+    <h3 id="result"></h3>
+    <div id = "wrapper">
+    </div>
+  </body>
+
+  <script src="./electron-d3.min.js"></script>
+  <script>
+    require('./renderer.js')
+  </script>
+</html>
