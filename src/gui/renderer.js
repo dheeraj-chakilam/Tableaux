@@ -29,7 +29,7 @@ function showOverview() {
 function pruneTree(root) {
   var newchildren = [];
   for (var i = 0; i < root.children.length; i++) {
-    if (parseInt(root.children[i].id)-1 <= step) {  // TODO change to step ID
+    if (parseInt(root.children[i].stepid) <= step) {
       pruneTree(root.children[i]);
       newchildren.push(root.children[i]);
     }
