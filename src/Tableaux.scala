@@ -32,12 +32,15 @@ object Tableaux {
   var node_counter = 1
   var step_counter = 0
 
+  var explanations: Map[Int, String] = Map()
+
   def init(e: Expr) = {
     root = new Node(e, Nil, false, null, node_counter, step_counter)
     node_counter = node_counter + 1
     step_counter = step_counter + 1
     pQ = new Queue[Node]
     pQ.enqueue(root)
+    explanations += (0 -> ("To check if " + eToStr(e)  + " is a tautology, we will try to falsify it."))
   }
 
   def deepCopy(n: Node): Node = {
@@ -71,12 +74,15 @@ object Tableaux {
     // Step1: Check for contradictions and update env, children (make empty)
     current.e match {
       case Literal(pVar) if (current.env.contains(Literal(pVar))) =>
-        if (current.show != current.env(Literal(pVar))){
+        if (current.show != current.env(Literal(pVar))) {
           current.isContra = true
           current.children = Nil
+          explanations += (step_counter -> ("We have found a contradiction and thus closed off this branch."))
         }
       case Literal(pVar) =>
         current.env += (Literal(pVar) -> current.show)
+        explanations += (step_counter -> ("We have found an open branch and thus a falsifying assignment to the " +
+          " proposed tautology. For completeness, we will show you how to evaluate the rest of the branches."))
       case _ => ;
     }
 
@@ -85,26 +91,47 @@ object Tableaux {
     current.e match {
       case Literal(pVar) => ;
       case Not(e) =>
-        godChildren ::= new Node(e,Nil,!current.show,current,-1,step_counter)
+        godChildren ::= new Node(e, Nil, !current.show, current, -1, step_counter)
+        if (current.show){
+          explanations += (step_counter -> ("Showing that " + eToStr(Not(e)) +
+            " is true is the same as showing that " + eToStr(e) + " is false."))
+        }
+        else{
+          explanations += (step_counter -> ("Showing that " + eToStr(Not(e)) +
+            " is false is the same as showing that " + eToStr(e) + " is true."))
+        }
       case And(e1, e2) if current.show =>
-        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
-        godChildren ::= new Node(e1,List(innerNode),current.show,current,-1,step_counter)
+        val innerNode: Node = new Node(e2, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e1, List(innerNode), current.show, current, -1, step_counter)
+        explanations += (step_counter -> ("Showing that " + eToStr(And(e1, e2)) +
+          " is true is the same as showing that both " + eToStr(e1) + " and " + eToStr(e2) + " are true."))
       case And(e1, e2) =>
-        godChildren ::= new Node(e1,Nil,current.show,current,-1,step_counter)
-        godChildren ::= new Node(e2,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e1, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e2, Nil, current.show, current, -1, step_counter)
+        explanations += (step_counter -> ("Showing that " + eToStr(And(e1, e2)) +
+          " is false is the same as showing that either " + eToStr(e1) + " or " + eToStr(e2) + " is false."))
       case Or(e1, e2) if current.show =>
-        godChildren ::= new Node(e1,Nil,current.show,current,-1,step_counter)
-        godChildren ::= new Node(e2,Nil,current.show,current,-1,step_counter)
+        godChildren ::= new Node(e1, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e2, Nil, current.show, current, -1, step_counter)
+        explanations += (step_counter -> ("Showing that " + eToStr(Or(e1, e2)) +
+          " is true is the same as showing that either " + eToStr(e1) + " or " + eToStr(e2) + " is true."))
       case Or(e1, e2) =>
-        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
-        godChildren ::= new Node(e1,List(innerNode),current.show,current,-1,step_counter)
+        val innerNode: Node = new Node(e2, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e1, List(innerNode), current.show, current, -1, step_counter)
+        explanations += (step_counter -> ("Showing that " + eToStr(Or(e1, e2)) +
+          " is false is the same as showing that both " + eToStr(e1) + " and " + eToStr(e2) + " are false."))
       case Impl(e1, e2) if current.show =>
-        godChildren ::= new Node(e1,Nil,!current.show,current,-1,step_counter)
-        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
-        godChildren ::= new Node(e1,List(innerNode),current.show,current,-1,step_counter)
-      case Impl(e1,e2) =>
-        val innerNode: Node = new Node(e2,Nil,current.show,current,-1,step_counter)
-        godChildren ::= new Node(e1,List(innerNode),!current.show,current,-1,step_counter)
+        godChildren ::= new Node(e1, Nil, !current.show, current, -1, step_counter)
+        val innerNode: Node = new Node(e2, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e1, List(innerNode), current.show, current, -1, step_counter)
+        explanations += (step_counter -> ("Showing that " + eToStr(Impl(e1, e2)) +
+          " is true is the same as showing either of two things. First,  " + eToStr(e1) + " is false. Second, " +
+          eToStr(e1) + " and " + eToStr(e2) + "are both true. "))
+      case Impl(e1, e2) =>
+        val innerNode: Node = new Node(e2, Nil, current.show, current, -1, step_counter)
+        godChildren ::= new Node(e1, List(innerNode), !current.show, current, -1, step_counter)
+        explanations += (step_counter -> ("Showing that " + eToStr(Impl(e1, e2)) +
+          " is false is the same as showing that " + eToStr(e1) + " is true and " + eToStr(e2) + " is false."))
     }
 
     current.e match {
@@ -112,7 +139,7 @@ object Tableaux {
       case default => step_counter = step_counter + 1
     }
 
-    appendTail(current,godChildren)
+    appendTail(current, godChildren)
 
     // Step3: Copies the current node's environment to its immediate children and adds them to the pQ
     current.children.foreach { n =>
@@ -136,64 +163,64 @@ object Tableaux {
   /* Returns the Expr which matches the input string. Note that there is no assumed order of operations and thus,
   * parentheses must be used around any inner operator, ie: ~(A v B v C) ^ D -> D is NOT okay, but
   * ((~((A v B) v C)) ^ D) -> D is okay*/
-  def parse(arg: String) : Expr = {
+  def parse(arg: String): Expr = {
     //Get rid of spaces and change "->" to ">"
     var input: String = arg.replaceAll("-", "")
     input = input.replaceAll(" ", "")
 
     //Add parentheses around unary operator, ie: ~A becomes (~A)
-    for (x <- 'A' to 'Z'){
+    for (x <- 'A' to 'Z') {
       input = input.replaceAll("~" + x, "(~" + x + ")")
     }
 
     return parse_helper(input);
   }
 
-  def parse_helper(arg: String) : Expr = {
+  def parse_helper(arg: String): Expr = {
     //Base Case 1: empty string
-    if (arg.length() == 0){
+    if (arg.length() == 0) {
       throw new IllegalArgumentException("Invalid input")
     }
 
     //Base Case 2: Single character
-    if (arg.length() == 1){
-      if (arg.charAt(0) >= 'A' && arg.charAt(0) <= 'Z'){
+    if (arg.length() == 1) {
+      if (arg.charAt(0) >= 'A' && arg.charAt(0) <= 'Z') {
         return Literal(arg.charAt(0))
       }
-      else{
+      else {
         throw new IllegalArgumentException("Invalid input")
       }
     }
 
     //Step 1: find operator with highest precedence (leftmost)
-    var num_paren : Int = 0
-    var operator : Char = '\u0000'
-    var operator_index : Int = 0
-    for (i <- 0 to arg.length()-1){
-      if (arg.charAt(i) == '('){
+    var num_paren: Int = 0
+    var operator: Char = '\u0000'
+    var operator_index: Int = 0
+    for (i <- 0 to arg.length() - 1) {
+      if (arg.charAt(i) == '(') {
         num_paren += 1
       }
-      else if (arg.charAt(i) == ')'){
+      else if (arg.charAt(i) == ')') {
         num_paren -= 1
       }
       else if (num_paren == 0 && (arg.charAt(i) == '~' || arg.charAt(i) == 'v' || arg.charAt(i) == '^' ||
-        arg.charAt(i) == '>')){
+        arg.charAt(i) == '>')) {
         operator = arg.charAt(i)
         operator_index = i
       }
     }
 
     //Step 2: recursively call parse_helper on the sub-expression(s) of the above operator
-    if (operator == '\u0000' && arg.charAt(0) == '(' && arg.charAt(arg.length() - 1) == ')'){
+    if (operator == '\u0000' && arg.charAt(0) == '(' && arg.charAt(arg.length() - 1) == ')') {
       return parse_helper(arg.substring(1, arg.length() - 1))
     }
-    if (operator == '~'){
+    if (operator == '~') {
       return Not(parse_helper(arg.substring(1)))
     }
-    if (operator == 'v'){
+    if (operator == 'v') {
       return Or(parse_helper(arg.substring(0, operator_index)), parse_helper(arg.substring(operator_index + 1)))
     }
-    if (operator == '^'){
+    if (operator == '^') {
       return And(parse_helper(arg.substring(0, operator_index)), parse_helper(arg.substring(operator_index + 1)))
     }
     if (operator == '>') {
@@ -203,13 +230,13 @@ object Tableaux {
     throw new IllegalArgumentException("Invalid input")
   }
 
-  def exprToString(e: Expr): String = {
+  def eToStr(e: Expr): String = {
     e match {
       case Literal(pVar) => pVar + ""
-      case Not(e) => "~" + exprToString(e)
-      case And(e1, e2) => "(" + exprToString(e1) + " ^ " + exprToString(e2) + ")"
-      case Or(e1, e2) => "(" + exprToString(e1) + " v " + exprToString(e2) + ")"
-      case Impl(e1, e2) => "(" + exprToString(e1) + " -> " + exprToString(e2) + ")"
+      case Not(e) => "~" + eToStr(e)
+      case And(e1, e2) => "(" + eToStr(e1) + " ^ " + eToStr(e2) + ")"
+      case Or(e1, e2) => "(" + eToStr(e1) + " v " + eToStr(e2) + ")"
+      case Impl(e1, e2) => "(" + eToStr(e1) + " -> " + eToStr(e2) + ")"
     }
   }
 
@@ -223,22 +250,22 @@ object Tableaux {
     var nextOffset = innerOffset
     for (x <- 1 to spaces) nextOffset += " "
 
-    var json = offset+"{\n"
-    json += innerOffset+"\"id\": \""+n.nodeID+"\",\n"
-    json += innerOffset+"\"parent\": \""+parent+"\",\n"
-    json += innerOffset+"\"stepid\": \""+n.stepID+"\",\n"
-    json += innerOffset+"\"expr\": \""+exprToString(n.e)+"\",\n"
-    json += innerOffset+"\"show\": \""+n.show+"\",\n"
+    var json = offset + "{\n"
+    json += innerOffset + "\"id\": \"" + n.nodeID + "\",\n"
+    json += innerOffset + "\"parent\": \"" + parent + "\",\n"
+    json += innerOffset + "\"stepid\": \"" + n.stepID + "\",\n"
+    json += innerOffset + "\"expr\": \"" + eToStr(n.e) + "\",\n"
+    json += innerOffset + "\"show\": \"" + n.show + "\",\n"
     var godp = "null"
-    if (n.godparent != null) godp = n.godparent.nodeID+""
-    json += innerOffset+"\"godparent\": \""+godp+"\",\n"
-    json += innerOffset+"\"isContra\": \""+n.isContra+"\",\n"
-    json += innerOffset+"\"children\": [\n"
+    if (n.godparent != null) godp = n.godparent.nodeID + ""
+    json += innerOffset + "\"godparent\": \"" + godp + "\",\n"
+    json += innerOffset + "\"isContra\": \"" + n.isContra + "\",\n"
+    json += innerOffset + "\"children\": [\n"
     for (x <- 1 to n.children.length) {
-      json += nodeToJSON(n.children(x-1), n.nodeID+"", nextOffset, spaces, x < n.children.length)
+      json += nodeToJSON(n.children(x - 1), n.nodeID + "", nextOffset, spaces, x < n.children.length)
     }
-    json += innerOffset+"]\n"
-    json += offset+"}"
+    json += innerOffset + "]\n"
+    json += offset + "}"
     if (appendComma) json += ","
     json += "\n"
 
@@ -247,16 +274,16 @@ object Tableaux {
 
   def writeTreeToFile(filename: String) = {
     val isTaut = isTautology(root)
-    val result = exprToString(root.e)+" is "+isTaut
+    val result = eToStr(root.e) + " is " + isTaut
     println(result)
 
     var spaces = 2
     var offset = ""
     for (x <- 1 to spaces) offset += " "
     var toWrite = "[\n"
-    toWrite += (offset+"{\n")
-    toWrite += (offset+offset+"\"result\":"+isTaut+"\n")
-    toWrite += (offset+"},\n")
+    toWrite += (offset + "{\n")
+    toWrite += (offset + offset + "\"result\":" + isTaut + "\n")
+    toWrite += (offset + "},\n")
     toWrite += nodeToJSON(root, "null", offset, spaces, false) // 2-spacing for JSON formatting
     toWrite += "]"
 
@@ -291,3 +318,4 @@ object Tableaux {
     eval()
     writeTreeToFile("treeData.json")
   }
+}
