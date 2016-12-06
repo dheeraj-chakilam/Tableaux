@@ -59,7 +59,7 @@ function hideLoading() {
 
 function executeTableaux(expression, failurecallback) {
   showLoading();
-  exec('scala -classpath "../" Tableaux "'+expression+'"', (error, stdout, stderr) => {
+  exec('scala -classpath "scala/" Tableaux "'+expression+'"', (error, stdout, stderr) => {
     hideLoading();
     if (error) {
       console.error(`exec error: ${error}`);
