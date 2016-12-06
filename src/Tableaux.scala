@@ -337,19 +337,12 @@ object Tableaux {
 
   def main(args: Array[String]) = {
     val start = System.currentTimeMillis()
-    /*val a: Expr = Literal('A')
-    val b: Expr = Literal('B')
-    val e1: Expr = And(a, b)
-    val e2: Expr = Or(a, b)
-    val e3: Expr = Or(a, Not(a))
-    val e4: Expr = Impl(Not(e1),Or(Not(a),Not(b)))
-    val e5: Expr = Impl(Impl(And(a,Not(b)),a),e4)*/
     if (args.length == 0) {
       println("Usage: Tableaux \"[expression]\"")
       System.exit(0)
     }
     try {
-      val e: Expr = parse(args(0))
+      val e: Expr = parse(args(0).map(c => if (c != 'v') c.toUpper else c))
       init(e)
     } catch {
       case exc: Exception => {

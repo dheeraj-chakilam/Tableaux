@@ -11,30 +11,67 @@ var numSteps = 0;
 var treeObj = null;
 var treeString = "";
 var mode = 0; // 0 = overview, 1 = step-by-step
+var showinstr = 0;
+
+function showInstructions() {
+  showinstr = 1;
+  document.getElementById("instructions").style.display = "block";
+  document.getElementById("instrLink").innerHTML = "hide instructions";
+}
+
+function hideInstructions() {
+  showinstr = 0;
+  document.getElementById("instructions").style.display = "none";
+  document.getElementById("instrLink").innerHTML = "show instructions";
+}
+
+function toggleInstructions() {
+  showinstr == 0 ? showInstructions() : hideInstructions();
+}
 
 function updateButtonsMode() {
   if (mode == 0) {
+    document.getElementById("sbskey").style.display="none";
     document.getElementById("overviewLink").style.display = "none";
     document.getElementById("stepByStepLink").style.display = "inline-block";
     document.getElementById("nextStepLink").style.display = "none";
     document.getElementById("prevStepLink").style.display = "none";
   } else {
+    document.getElementById("sbskey").style.display="inline-block";
     document.getElementById("overviewLink").style.display = "inline-block";
     document.getElementById("stepByStepLink").style.display = "none";
     document.getElementById("nextStepLink").style.display = step < numSteps ? "inline-block" : "none";
     document.getElementById("prevStepLink").style.display = step > 0 ? "inline-block" : "none";
   }
 }
+document.body.innerHTML += "<div id = \"loading\"><div id =\"spinner-wrap\"><div class=\"spinner\"></div><div id=\"loading-text\">Evaluating expression...</div></div></div>";
 updateButtonsMode();
 
-function executeTableaux(expression) {
-  console.log("executing "+expression);
+function showLoading() {
+  var element = document.getElementById("loading");
+  element.style.visibility = "visible";
+}
+
+function hideLoading() {
+  var element = document.getElementById("loading");
+  element.style.visibility = "hidden";
+}
+
+function executeTableaux(expression, failurecallback) {
+  showLoading();
   exec('scala -classpath "../" Tableaux "'+expression+'"', (error, stdout, stderr) => {
+    hideLoading();
     if (error) {
       console.error(`exec error: ${error}`);
-      return;
+      failurecallback("Error: an unknown error occured.")
+    } else if (stdout.startsWith("Invalid input expression!")) {
+      failurecallback("Error: could not parse the expression "+expression+"!");
+    } else {
+      document.getElementById("intro").style.display="none";
+      document.getElementById("content").style.display="block";
+      document.getElementById("error").style.display="none";
+      updateTreeData();
     }
-    updateTreeData();
   });
 }
 
@@ -84,7 +121,6 @@ function showStepByStep() {
   document.getElementById("result").innerHTML = (step == numSteps) ? ((treeObj[0].result ? 
     "All branches have been closed off, hence " : "We have an open branch in the tree, hence ") + 
       (treeObj[2].expr+" is "+treeObj[0].result+".")) : parse[1][step+""];
-  document.getElementById("wrapper").style.border = (step == numSteps) ? "1px solid black" : "1px dashed black";
 }
 
 function updateTreeData() {
@@ -98,6 +134,7 @@ function updateTreeData() {
     numSteps = Object.keys(treeObj[1]).length;
     decorateOpenBranches(treeObj[2]);
     decorateNumChildren(treeObj[2]);
+    console.log(treeObj);
     if (step == -1) {
       showOverview();
     } else {
@@ -108,14 +145,17 @@ function updateTreeData() {
 
 document.getElementById("introExecuteLink").onclick = function() {
   step = -1;
-  executeTableaux(document.getElementById("introExpr").value);
-  document.getElementById("intro").style.display = "none";
-  document.getElementById("content").style.display = "block";
+  executeTableaux(document.getElementById("introExpr").value, function(error) {
+    document.getElementById("introError").innerHTML = error;
+  });
 }
 
 document.getElementById("executeLink").onclick = function() {
   step = -1;
-  executeTableaux(document.getElementById("expr").value);
+  executeTableaux(document.getElementById("expr").value, function(error) {
+    document.getElementById("error").style.display="block";
+    document.getElementById("error").innerHTML = error;
+  });
 }
 
 document.getElementById("overviewLink").onclick = function() {
@@ -138,11 +178,16 @@ document.getElementById("prevStepLink").onclick = function() {
   showStepByStep();
 }
 
+document.getElementById("instrLink").onclick = function() {
+  console.log("hey");
+  toggleInstructions();
+}
+
 // ************** Generate the tree diagram  *****************
 
 var margin = {top: 0, right: 0, bottom: 0, left: 0},
-  width = 650 - margin.right - margin.left,
-  height = 650 - margin.top - margin.bottom;
+  width = 620 - margin.right - margin.left,
+  height = 620 - margin.top - margin.bottom;
   
 var i = 0,
   duration = 150,
@@ -165,7 +210,6 @@ function moveTreeRight(byX) {
 }
 
 function updateTree(treeData) {
-  console.log(treeData);
   tree = d3.layout.tree().size([height, width]);
   root = treeData;
   root.x0 = width / 2;

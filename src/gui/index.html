@@ -31,7 +31,7 @@
       #content {
         display:none;
         width:90%;
-        margin:20px auto;
+        margin:5px auto;
       }
       #intro {
         width:80%;
@@ -42,38 +42,113 @@
         color:white !important;
       }
       form {
-        margin-bottom:5px !important;
+        margin-bottom:2px !important;
       }
       #wrapper {
-        background: rgb(228, 228, 228);
+      }
+      #loading {
+        background:rgba(72, 2, 2, 0.92);
+        width:100%;
+        height:100%;
+        position: absolute;
+        top:0;
+        left:0;
+        visibility: hidden;
+      }
+      ul {
+        text-align: left;
+      }
+      .error-text {
+        color:red;
+      }
+      #instructions {
+        display:none;
+      }
+      #result {
+        padding:5px;
         border:1px solid black;
+        background: #e0e0e0;
+      }
+      #key, #sbskey {
+        position: absolute;
+        top:0;
+        padding:2px;
+      }
+      #key {
+        left:0;
+        text-align: left;
+        border-right:1px dashed black;
+        border-bottom: 1px dashed black;
+      }
+      #sbskey {
+        right:0;
+        text-align: right;
+        border-left:1px dashed black;
+        border-bottom: 1px dashed black;
+      }
+      #key>img, #sbskey>img {
+        vertical-align: middle;
+      }
+      #sbskey {
+        display:none;
       }
     </style>
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/skeleton.css">
+    <link rel="stylesheet" href="css/spinner.css">
   </head>
 
   <body>
     <div id = "content">
+      <div id ="key">
+        <img src="img/black.PNG"> = closed branch<br>
+        <img src="img/red.PNG"> = open branch<br>
+      </div>
+      <div id="sbskey">
+        <img src="img/grey.PNG"> = visited node<br>
+        <img src="img/green.PNG"> = current node
+      </div>
       <form onsubmit="return false">
         <input type="text" id="expr" placeholder="Enter an expression">
         <input type="submit" class="button-primary" id="executeLink" value="Evaluate">
+        <a class="button" id="instrLink" href="#">show instructions</a>
       </form>
+      <p id="error" class="error-text"></p>
+      <ul id = "instructions">
+        <li>Negations are represented with ~
+        <li>Conjunctions are represented with ^
+        <li>Disjunctions are represented with v
+        <li>Implications are represented with ->
+        <li>Parentheses are important for associativity!
+        <li>Propositional variables should be represented as English alphabets (not case-sensitive)
+        <li>Example expression: (~(A ^ B)) -> (~A v ~B)
+      </ul>
       <a class="button lime" id="overviewLink" href="#">Overview</a>
-      <a class="button lime" id="stepByStepLink" href="#">Step-by-step</a><br>
+      <a class="button lime" id="stepByStepLink" href="#">Step-by-step</a>
       <a class="button" id="prevStepLink" href="#">Previous step</a>
       <a class="button" id="nextStepLink" href="#">Next step</a>
-      <h5 id="result"></h5>
+      <h6 id="result"></h6>
       <div id = "wrapper">
       </div>
     </div>
     <div id = "intro">
       <h3>Welcome to Constableaux!</h3>
       <p>This is a propositional logic solver that uses the Tableaux method to visualize proofs for you. It can also step through the proof to show you how exactly the result was derived.</p>
-      <p>To start, enter any propositional logic expression below. Negations are represented with ~, conjunctions with ^, disjunctions with v, and implications with ->. Parentheses are important, and please restrict propositional variable names to uppercase alphabets!</p>
+      <p>To start, enter any propositional logic expression below. While writing the expression, keep in mind that:
+        <ul>
+          <li>Negations are represented with ~
+          <li>Conjunctions are represented with ^
+          <li>Disjunctions are represented with v
+          <li>Implications are represented with ->
+          <li>Parentheses are important for associativity!
+          <li>Propositional variables should be represented as English alphabets (not case-sensitive)
+          <li>Example expression: (~(A ^ B)) -> (~A v ~B)
+        </ul>
+      </p>
       <form onsubmit="return false">
         <input type="text" id="introExpr">
         <input type="submit" class="button-primary" id="introExecuteLink" value="Evaluate">
+        <p id="introError" class="error-text"></p>
       </form>
     </div>
   </body>
