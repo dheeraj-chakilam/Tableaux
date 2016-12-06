@@ -84,6 +84,7 @@ function showStepByStep() {
   document.getElementById("result").innerHTML = (step == numSteps) ? ((treeObj[0].result ? 
     "All branches have been closed off, hence " : "We have an open branch in the tree, hence ") + 
       (treeObj[2].expr+" is "+treeObj[0].result+".")) : parse[1][step+""];
+  document.getElementById("wrapper").style.border = (step == numSteps) ? "1px solid black" : "1px dashed black";
 }
 
 function updateTreeData() {

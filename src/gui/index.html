@@ -30,6 +30,23 @@
       }
       #content {
         display:none;
+        width:90%;
+        margin:20px auto;
+      }
+      #intro {
+        width:80%;
+        margin: 20px auto;
+      }
+      .lime {
+        background: rgb(130, 202, 76) !important;
+        color:white !important;
+      }
+      form {
+        margin-bottom:5px !important;
+      }
+      #wrapper {
+        background: rgb(228, 228, 228);
+        border:1px solid black;
       }
     </style>
     <link rel="stylesheet" href="css/normalize.css">
@@ -38,16 +55,15 @@
 
   <body>
     <div id = "content">
-      <h2>Visualization of the Tableaux Method</h2>
       <form onsubmit="return false">
         <input type="text" id="expr" placeholder="Enter an expression">
         <input type="submit" class="button-primary" id="executeLink" value="Evaluate">
       </form>
-      <a class="button" id="overviewLink" href="#">Overview</a>
-      <a class="button" id="stepByStepLink" href="#">Step-by-step</a><br>
-      <a class="button" id="prevStepLink" href="#">Previous</a>
-      <a class="button" id="nextStepLink" href="#">Next</a>
-      <h4 id="result"></h4>
+      <a class="button lime" id="overviewLink" href="#">Overview</a>
+      <a class="button lime" id="stepByStepLink" href="#">Step-by-step</a><br>
+      <a class="button" id="prevStepLink" href="#">Previous step</a>
+      <a class="button" id="nextStepLink" href="#">Next step</a>
+      <h5 id="result"></h5>
       <div id = "wrapper">
       </div>
     </div>
