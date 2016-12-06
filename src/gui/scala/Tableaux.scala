@@ -22,6 +22,7 @@ class Node(p1: Expr, p2: List[Node], p3: Boolean, p4: Node, p5: Int, p6: Int) {
   var isContra: Boolean = false
   var nodeID: Int = p5
   var stepID: Int = p6
+  var processedID: Int = 0
 }
 
 object Tableaux {
@@ -97,6 +98,7 @@ object Tableaux {
       return ()
     }
     val current: Node = pQ.dequeue()
+    current.processedID = step_counter;
 
     // Step1: Check for contradictions and update env, children (make empty)
     current.e match {
@@ -284,6 +286,7 @@ object Tableaux {
     json += innerOffset + "\"id\": \"" + n.nodeID + "\",\n"
     json += innerOffset + "\"parent\": \"" + parent + "\",\n"
     json += innerOffset + "\"stepid\": \"" + n.stepID + "\",\n"
+    json += innerOffset + "\"processedid\": \"" + n.processedID + "\",\n"
     json += innerOffset + "\"expr\": \"" + eToStr(n.e) + "\",\n"
     json += innerOffset + "\"show\": \"" + n.show + "\",\n"
     var godp = "null"

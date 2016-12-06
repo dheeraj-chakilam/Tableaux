@@ -100,8 +100,8 @@ function pruneTree(n) {
       newchildren.push(n.children[i]);
     }
   }
-  n.processed = parseInt(n.id) < step;
-  n.processing = parseInt(n.id) == step;
+  n.processed = parseInt(n.processedid) < step;
+  n.processing = parseInt(n.processedid) == step;
   n.openBranch = n.isContra == "false" && n.children.length == 0 && n.processed;
   n.isContra = n.isContra == "true" && n.processed ? "true" : "false";
   n.children = newchildren;
