@@ -1,5 +1,5 @@
 /**
-* Created by Dheeraj on 11/19/2016.
+* Created by Dheeraj, Karun, and Peter on 11/19/2016.
 */
 
 import scala.collection.mutable.Queue
@@ -105,6 +105,9 @@ object Tableaux {
           current.isContra = true
           current.children = Nil
           explanations += (step_counter -> ("We have found a contradiction and thus closed off this branch."))
+        } else {
+          explanations += (step_counter ->
+            ("This node cannot be processed any further, so we continue further down this branch."))
         }
       case Literal(pVar) =>
         current.env += (Literal(pVar) -> current.show)
@@ -153,12 +156,10 @@ object Tableaux {
         explanations += (step_counter -> ("Showing that " + eToStr(Or(e1, e2)) +
           " is false is the same as showing that both " + eToStr(e1) + " and " + eToStr(e2) + " are false."))
       case Impl(e1, e2) if current.show =>
+        godChildren ::= new Node(e2, Nil, current.show, current, -1, step_counter)
         godChildren ::= new Node(e1, Nil, !current.show, current, -1, step_counter)
-        val innerNode: Node = new Node(e2, Nil, current.show, current, -1, step_counter)
-        godChildren ::= new Node(e1, List(innerNode), current.show, current, -1, step_counter)
         explanations += (step_counter -> ("Showing that " + eToStr(Impl(e1, e2)) +
-          " is true is the same as showing either of two things. First,  " + eToStr(e1) + " is false. Second, " +
-          eToStr(e1) + " and " + eToStr(e2) + "are both true. "))
+          " is true is the same as showing either " + eToStr(e1) + " is false or " + eToStr(e2) + " is true."))
       case Impl(e1, e2) =>
         val innerNode: Node = new Node(e2, Nil, current.show, current, -1, step_counter)
         godChildren ::= new Node(e1, List(innerNode), !current.show, current, -1, step_counter)
@@ -166,10 +167,6 @@ object Tableaux {
           " is false is the same as showing that " + eToStr(e1) + " is true and " + eToStr(e2) + " is false."))
     }
 
-    /* current.e match {
-      case Literal(pVar) => ;
-      case default => step_counter = step_counter + 1
-    } */
     step_counter += 1
 
     appendTail(current, godChildren)
