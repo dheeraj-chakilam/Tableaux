@@ -41,9 +41,13 @@ function executeTableaux(expression) {
 function showOverview() {
   mode = 0; updateButtonsMode();
   var tree = treeObj[2];
-  decorateOpenBranches(tree);
   updateTree(tree);
   document.getElementById("result").innerHTML = (treeObj[2].expr+" is "+treeObj[0].result+".");
+}
+
+function decorateNumChildren(n) {
+  n.numchildren = n.children.length;
+  for (var i = 0; i < n.children.length; i++) decorateNumChildren(n.children[i]);
 }
 
 function decorateOpenBranches(n) {
@@ -74,6 +78,7 @@ function showStepByStep() {
   if (step < 0) step = 0;
   if (step > numSteps) step = numSteps;
   // Remove all subtrees with stepID >  step:
+  decorateNumChildren(filtered);
   pruneTree(filtered);
   updateTree(filtered);
   document.getElementById("result").innerHTML = (step == numSteps) ? ((treeObj[0].result ? 
@@ -90,6 +95,8 @@ function updateTreeData() {
     treeString = data;
     treeObj = JSON.parse(data);
     numSteps = Object.keys(treeObj[1]).length;
+    decorateOpenBranches(treeObj[2]);
+    decorateNumChildren(treeObj[2]);
     if (step == -1) {
       showOverview();
     } else {
@@ -217,7 +224,7 @@ function update(source) {
     .style("fill", function(d) { return circleFill(d); });
 
   nodeEnter.append("text")
-    .attr("y", function(d) { return d.children || d._children ? -28 : 28; })
+    .attr("y", function(d) { return d.numchildren > 0 ? -28 : 28; })
     .attr("dy", ".35em")
     .attr("text-anchor", "middle")
     .text(function(d) { return getDisplayName(d); })

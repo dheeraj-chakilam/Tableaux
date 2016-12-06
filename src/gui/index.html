@@ -39,7 +39,7 @@
   <body>
     <div id = "content">
       <h2>Visualization of the Tableaux Method</h2>
-      <form>
+      <form onsubmit="return false">
         <input type="text" id="expr" placeholder="Enter an expression">
         <input type="submit" class="button-primary" id="executeLink" value="Evaluate">
       </form>
@@ -55,7 +55,7 @@
       <h3>Welcome to Constableaux!</h3>
       <p>This is a propositional logic solver that uses the Tableaux method to visualize proofs for you. It can also step through the proof to show you how exactly the result was derived.</p>
       <p>To start, enter any propositional logic expression below. Negations are represented with ~, conjunctions with ^, disjunctions with v, and implications with ->. Parentheses are important, and please restrict propositional variable names to uppercase alphabets!</p>
-      <form>
+      <form onsubmit="return false">
         <input type="text" id="introExpr">
         <input type="submit" class="button-primary" id="introExecuteLink" value="Evaluate">
       </form>
