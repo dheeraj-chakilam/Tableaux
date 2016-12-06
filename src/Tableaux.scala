@@ -55,7 +55,6 @@ object Tableaux {
       numNodes = numNodes + 1
       head.children.foreach(queue.enqueue(_))
     }
-
     nodeIDSet = nodeIDSet.sorted
     var nodeIDConversion: Map[Int, Int] = Map()
     for (i <- 0 to (numNodes - 1)){
@@ -67,7 +66,7 @@ object Tableaux {
     while(!queue2.isEmpty) {
       var head: Node = queue2.dequeue
       head.nodeID = nodeIDConversion(head.nodeID)
-      head.children.foreach(queue.enqueue(_))
+      head.children.foreach(queue2.enqueue(_))
     }
   }
 
